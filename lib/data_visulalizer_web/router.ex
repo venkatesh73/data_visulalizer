@@ -17,7 +17,11 @@ defmodule DataVisulalizerWeb.Router do
   scope "/", DataVisulalizerWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", DashboardLive, :index
+    live "/create", DashboardLive, :create
+    live "/:id/update", DashboardLive, :update
+
+    live "/shared", SharedDashboardLive, :shared
   end
 
   # Other scopes may use custom stacks.

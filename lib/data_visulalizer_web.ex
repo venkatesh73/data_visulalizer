@@ -21,7 +21,7 @@ defmodule DataVisulalizerWeb do
 
   def router do
     quote do
-      use Phoenix.Router, helpers: false
+      use Phoenix.Router, helpers: true
 
       # Import common connection and controller functions to use in pipelines
       import Plug.Conn
@@ -89,6 +89,7 @@ defmodule DataVisulalizerWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+      alias DataVisulalizerWeb.Router.Helpers, as: Routes
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
@@ -101,6 +102,23 @@ defmodule DataVisulalizerWeb do
         endpoint: DataVisulalizerWeb.Endpoint,
         router: DataVisulalizerWeb.Router,
         statics: DataVisulalizerWeb.static_paths()
+    end
+  end
+
+  def view_helpers do
+    quote do
+      # Use all HTML functionality (forms, tags, etc)
+      use Phoenix.HTML
+
+      use Phoenix.Component
+      import DataVisulalizerWeb.LiveHelpers
+
+      # Import basic rendering functionality (render, render_layout, etc)
+      import Phoenix.View
+
+      alias DataVisulalizerWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 

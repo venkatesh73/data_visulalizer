@@ -18,20 +18,46 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
+import { LongPoll } from 'phoenix';
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import getHooks from "./hooks"
+// import {socket} from "./hooks/plotChannel"
+
+let hooks = getHooks();
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks})
+liveSocket.enableDebug()
+
+const socket = liveSocket.getSocket();
+socket.timeout = 3000; // Timeout after 3s instead of 10s
+liveSocket.connect();
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
-// connect if there are any LiveViews on the page
-liveSocket.connect()
+console.log(socket.channels);
+
+const channel = socket.channels.find((e) => e.state === 'joining');
+if (channel) {
+    setTimeout(() => {
+        if (channel.state === 'errored') {
+            console.warn('LiveView connection failed. This could be due to a proxy or firewall blocking websockets. Falling back to long polling.');
+            liveSocket.disconnect();
+            const pollingLiveSocket = new LiveSocket('/live', Socket, {
+                params: { _csrf_token: csrfToken },
+                transport: LongPoll,
+                hooks,
+            });
+            pollingLiveSocket.connect();
+        }
+    }, 3500);
+}
+
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
