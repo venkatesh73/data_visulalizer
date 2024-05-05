@@ -1,4 +1,4 @@
-<main>
+<main :if={@current_user}>
   <div>
     <div class="relative z-50 lg:hidden" role="dialog" aria-modal="true">
       <!--
@@ -409,5 +409,12 @@
         </div>
       </main>
     </div>
+  </div>
+</main>
+
+<main class="py-10" :if={!@current_user}>
+  <div class="px-4 sm:px-6 lg:px-8">
+    <.flash_group flash={@flash} />
+    <%= @inner_content %>
   </div>
 </main>
